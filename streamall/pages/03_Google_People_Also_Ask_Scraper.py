@@ -6,6 +6,7 @@ import numpy as np
 import base64
 from io import BytesIO
 
+st.title('Google People Also Ask Scraper')
 
 import people_also_ask
 import re
