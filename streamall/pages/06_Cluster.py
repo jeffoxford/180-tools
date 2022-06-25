@@ -1,0 +1,149 @@
+from sentence_transformers import SentenceTransformer, util
+import os
+import csv
+import time
+import pandas as pd
+import streamlit as st
+import numpy as np
+
+threshold = st.slider('Similarity Threshold:', 0.0, 1.0, 0.95, 0.05)
+min_community_size = st.slider('Minimum size of a cluster:', 1, 10, 2, 1)
+max_size = 50
+uploaded_file = st.file_uploader("Upload Files", type=['csv', 'xlsx'])
+sentences = st.text_area("Paste sentences here:", height=300)
+
+
+# Model used for computing sentence embeddings.
+@st.cache(persist=True, allow_output_mutation=True)
+def load_model():
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    return model
+
+
+@st.cache
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
+
+
+## function used to extract the shortest sentence from the given cluster ##
+def get_shortest_title_cluster(cluster, corpus_sentences):
+    title = corpus_sentences[cluster[0]]
+    for idx in cluster:
+        if len(corpus_sentences[idx]) < len(title):
+            title = corpus_sentences[idx]
+    return title
+
+
+def get_median_title_cluster(cluster, corpus_sentences):
+    title_lens = [len(corpus_sentences[i]) for i in cluster]
+
+    ##cluster [4 1 5 6 ]
+    ### len   [1 20 5 3]
+    ## idx    [1 2 3 4]
+    idx = np.argsort(title_lens)
+    midx = cluster[idx[(len(idx) // 2)]]
+    # min = cluster[idx[0]]
+    # max = cluster[idx[-1]]
+    # print('start ')
+    # print("shortest %s"%corpus_sentences[min])
+    # print("longest %s"%corpus_sentences[max])
+    # print("median %s"%corpus_sentences[midx])
+    return corpus_sentences[midx]
+
+
+def run(df, min_community_size):
+    ## remove null records
+    if len(df) == 0:
+        return
+    df.dropna()
+    model = load_model()
+    st.write('Loading .... ')
+    corpus_sentences = set()
+
+    ### read the questions from the dataframe ###
+    ## please change the column name 'Questions' -> The column name in your file
+    column = df.columns[0]
+    for idx, row in df.iterrows():
+
+        if type(row[column]) == type(''):
+            corpus_sentences.add(row[column].strip())
+
+    ### lists unique sentences ###
+    corpus_sentences = list(corpus_sentences)
+    print("Encode the corpus. This might take a while")
+    corpus_embeddings = model.encode(corpus_sentences, batch_size=1, show_progress_bar=True, convert_to_tensor=True)
+
+    print("Start clustering")
+    start_time = time.time()
+
+    # Two parameters to tune:
+    # min_cluster_size: Only consider cluster that have at least 2 elements
+    # threshold: Consider sentence pairs with a cosine-similarity larger than threshold as similar
+
+    clusters = util.community_detection(corpus_embeddings, min_community_size=min_community_size, threshold=threshold,
+                                        init_max_size=max_size)
+
+    print("Clustering done after {:.2f} sec".format(time.time() - start_time))
+
+    ### prepare a new dataframe to store the results ###
+    clusters_df = pd.DataFrame(columns=['Cluster', 'Question'])
+    num_clusters = 0
+    for i, cluster in enumerate(clusters):
+        cluster_name = "Cluster {}".format(i)
+        title = get_median_title_cluster(cluster, corpus_sentences)
+        print("cluster: {title}".format(title=title))
+        for sentence_id in cluster:
+            clusters_df = clusters_df.append({'Cluster': title, 'Question': corpus_sentences[sentence_id]},
+                                             ignore_index=True)
+        num_clusters += 1
+    missing_questions_title = 'unspecified cluster'
+    for s in corpus_sentences:
+        res = clusters_df.loc[clusters_df['Question'] == s]
+        if len(res) < 1:
+            clusters_df = clusters_df.append({'Cluster': missing_questions_title, 'Question': s}, ignore_index=True)
+
+    st.text('# Clusters: {num_clusters}'.format(num_clusters=len(clusters_df['Cluster'].unique())))
+
+    clusters_df
+    csv = convert_df(clusters_df)
+
+    st.download_button(
+        label="Download data as CSV",
+        data=csv,
+        file_name='clusters.csv',
+        mime='text/csv',
+    )
+
+
+def main():
+    df = []
+    ### please select a file to load ####
+    file_path = 'vision boards.xlsx'
+    global threshold
+    global min_community_size
+    global max_size
+    global sentences
+
+    if sentences != None:
+        sentences = sentences.splitlines()
+        df = pd.DataFrame(columns=['Questions'])
+        for sentence in sentences:
+            df = df.append({'Questions': sentence}, ignore_index=True)
+        if len(df) > 0:
+            st.write(df)
+            run(df, min_community_size)
+    if uploaded_file is not None:
+        if "csv" in uploaded_file.name:
+            df = pd.read_csv(uploaded_file)
+        elif "xlsx" in uploaded_file.name:
+            df = pd.read_excel(uploaded_file)
+        if len(df) > 0:
+            st.write(df)
+            run(df, min_community_size)
+    if uploaded_file == None and sentences == None or len(sentences) < 1:
+        return
+
+
+if __name__ == '__main__':
+    main()
