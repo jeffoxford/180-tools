@@ -6,6 +6,8 @@ import pandas as pd
 import streamlit as st
 import numpy as np
 
+st.title('Question Clustering Tool')
+
 threshold = st.slider('Similarity Threshold:', 0.0, 1.0, 0.95, 0.05)
 min_community_size = st.slider('Minimum size of a cluster:', 1, 10, 2, 1)
 max_size = 50
