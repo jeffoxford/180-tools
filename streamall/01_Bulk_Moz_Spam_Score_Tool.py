@@ -6,7 +6,7 @@ import requests
 
 
 
-st.title("Url Spam Score")
+st.title("Bulk Moz Spam Score Tool")
 
 urls=st.text_area(label='Enter Urls',placeholder='Enter URLs (1 per line)')
 lines = urls.split("\n")
