@@ -9,6 +9,7 @@ import nltk
 import nltk.data
 nltk.download('punkt')
 
+st.title('Internal Linking Tool')
 
 tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 
