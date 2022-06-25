@@ -7,6 +7,7 @@ import time
 import base64
 from io import BytesIO
 import streamlit as st
+st.title('Google Autocomplete Scraper')
 
 startTime = time.time()
 
