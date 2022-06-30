@@ -14,14 +14,12 @@ lines = urls.split("\n")
 auth = (st.secrets['api_key1'], st.secrets['api_key2'])
 url = "https://lsapi.seomoz.com/v2/url_metrics"
 data = {"targets":lines}
-if len(lines)>500:
-     request = requests.post(url, json=data, auth=auth)
-     try:
-          df = pd.DataFrame((request.json()['results']))[['page', 'spam_score']]
-     except KeyError:
-          print("??")
-else:
-     print('???')
+request = requests.post(url, json=data, auth=auth)
+try:
+     df = pd.DataFrame((request.json()['results']))[['page', 'spam_score']]
+except KeyError:
+     print("??")
+     
 @st.cache
 def convert_df(df):
      return df.to_csv(index=False).encode('utf-8')
