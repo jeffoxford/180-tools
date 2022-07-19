@@ -46,7 +46,10 @@ for keyword in lines :
 
         i = i + 1
 
-df = pd.DataFrame(result_data)
+try :
+     df = pd.DataFrame(result_data)
+except :
+     pass
      
 @st.cache
 def convert_df(df):
