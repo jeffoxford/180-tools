@@ -31,7 +31,10 @@ for l in full_list:
     except KeyError:
         print("??")
 
-df = pd.concat(appended_data)
+try :
+     df = pd.concat(appended_data)
+except :
+     pass
 
 @st.cache
 def convert_df(df):
