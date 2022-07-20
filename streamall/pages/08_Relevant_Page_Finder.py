@@ -57,24 +57,23 @@ for keyword in lines :
             'total_results': 0
         })
 
-try :
-     df = pd.DataFrame(result_data)
-except :
-     pass
-     
-@st.cache
-def convert_df(df):
-     return df.to_csv(index=False).encode('utf-8')
+if st.button('Start Process The Keyword'):
+    df = pd.DataFrame(result_data)
+        
+    @st.cache
+    def convert_df(df):
+        return df.to_csv(index=False).encode('utf-8')
 
 
 
-try:
-     csv = convert_df(df)
-     st.download_button(
-          label="Get Relevant Page Finder",
-          data=csv,
-          file_name='relevant_page_finder.csv',
-          mime='text/csv',
-     )
-except:
-     print("?")
+    try:
+        csv = convert_df(df)
+        st.download_button(
+            label="Get Relevant Page Finder",
+            data=csv,
+            file_name='relevant_page_finder.csv',
+            mime='text/csv',
+        )
+    except:
+        print("?")
+
