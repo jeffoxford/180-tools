@@ -39,6 +39,7 @@ for keyword in lines :
 
                 result_data.append({
                     'input_keyword' : keyword,
+                    'domain':domain,
                     'position' : position,
                     'title' : title,
                     'link' : link,
@@ -50,6 +51,7 @@ for keyword in lines :
     except:
         result_data.append({
             'input_keyword' : keyword,
+            'domain':domain,
             'position' : 0,
             'title' : '',
             'link' : '',
@@ -69,7 +71,7 @@ if st.button('Start Process The Keyword'):
     try:
         csv = convert_df(df)
         st.download_button(
-            label="Get Relevant Page Finder",
+            label="Download Data",
             data=csv,
             file_name='relevant_page_finder.csv',
             mime='text/csv',
