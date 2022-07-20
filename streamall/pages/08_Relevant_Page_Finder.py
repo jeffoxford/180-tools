@@ -28,23 +28,34 @@ result_data = []
 for keyword in lines :
     r = get_data(keyword,domain)
     i = 1
-    for v in r['organic_results']:
-        if i <= 3 :
-            position =v['position']
-            title    =v['title']
-            link     =v['link']
-            snippet  =v['snippet']
-            total_results = r['search_information']['total_results']
+    try:
+        for v in r['organic_results']:
+            if i <= 3 :
+                position =v['position']
+                title    =v['title']
+                link     =v['link']
+                snippet  =v['snippet']
+                total_results = r['search_information']['total_results']
 
-            result_data.append({
-                'position' : position,
-                'title' : title,
-                'link' : link,
-                'snippet' : snippet,
-                'total_results' : total_results
-            })
+                result_data.append({
+                    'input_keyword' : keyword,
+                    'position' : position,
+                    'title' : title,
+                    'link' : link,
+                    'snippet' : snippet,
+                    'total_results' : total_results
+                })
 
-        i = i + 1
+            i = i + 1
+    except:
+        result_data.append({
+            'input_keyword' : keyword,
+            'position' : 0,
+            'title' : '',
+            'link' : '',
+            'snippet' : '',
+            'total_results': 0
+        })
 
 try :
      df = pd.DataFrame(result_data)
