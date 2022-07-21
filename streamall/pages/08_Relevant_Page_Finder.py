@@ -27,36 +27,31 @@ def get_data(keyword,domain):
 result_data = []
 for keyword in lines :
     r = get_data(keyword,domain)
-    i = 1
     try:
-        for v in r['organic_results']:
-            if i <= 3 :
-                position =v['position']
-                title    =v['title']
-                link     =v['link']
-                snippet  =v['snippet']
-                total_results = r['search_information']['total_results']
-
-                result_data.append({
-                    'input_keyword' : keyword,
-                    'domain':domain,
-                    'position' : position,
-                    'title' : title,
-                    'link' : link,
-                    'snippet' : snippet,
-                    'total_results' : total_results
-                })
-
-            i = i + 1
+        l1 = r['organic_results'][0]['link']
+    except:
+        l1 = ''
+    try:
+        l2 = r['organic_results'][1]['link']
+    except:
+        l2 = ''
+    try:
+        l3 = r['organic_results'][2]['link']
+    except:
+        l3 = ''
+    try:
+        result_data.append({
+            'input_keyword' : keyword,
+            '#1 URL' : l1,
+            '#2 URL' : l2,
+            '#3 URL' : l2,
+        })
     except:
         result_data.append({
             'input_keyword' : keyword,
-            'domain':domain,
-            'position' : 0,
-            'title' : '',
-            'link' : '',
-            'snippet' : '',
-            'total_results': 0
+            '#1 URL' : '',
+            '#2 URL' : '',
+            '#3 URL' : '',
         })
 
 if st.button('Start Process The Keyword'):
